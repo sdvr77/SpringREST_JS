@@ -108,7 +108,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="newRole">Role</label>
-                                    <select class="form-control" name="role" id="newRole" size="2">
+                                    <select class="form-control" name="role" id="newRole" size="2" multiple>
                                         <option value="ROLE_ADMIN">ADMIN</option>
                                         <option value="ROLE_USER">USER</option>
                                     </select>
@@ -208,7 +208,7 @@
                 <div class="form-group">
                     <label for="editRole">Role</label>
                     <select class="form-control" name="role" id="editRole"
-                            size="2" required>
+                            size="2" required multiple>
                         <option value="ROLE_ADMIN">ADMIN</option>
                         <option value="ROLE_USER">USER</option>
                     </select>
@@ -216,6 +216,68 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary" data-dismiss="modal" onclick="editUser()">Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Модальное окно удаления пользователя-->
+<div class="modal fade" id="deleteUserForm" tabindex="-1"
+     role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Edit
+                    user</h5>
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="deleteId">ID</label>
+                    <input type="text" name="id" class="form-control"
+                           id="deleteId" placeholder="ID" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deleteName">Name</label>
+                    <input type="text" name="name" class="form-control"
+                           id="deleteName" placeholder="Name" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deleteSurname">Surname</label>
+                    <input type="text" name="surName" class="form-control"
+                           id="deleteSurname" placeholder="Surname" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deleteLogin">Login</label>
+                    <input type="text" name="username" class="form-control"
+                           id="deleteLogin" placeholder="Login" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deleteAge">Age</label>
+                    <input type="text" name="age" class="form-control"
+                           id="deleteAge" placeholder="Age" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deletePassword">Password</label>
+                    <input type="password" name="password"
+                           class="form-control required"
+                           id="deletePassword" placeholder="Password" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="deleteRole">Role</label>
+                    <select class="form-control" name="role" id="deleteRole"
+                            size="2" disabled>
+                        <option value="ROLE_ADMIN">ADMIN</option>
+                        <option value="ROLE_USER">USER</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" data-dismiss="modal" onclick="deleteUser()">Delete</button>
                 </div>
             </div>
         </div>
@@ -245,16 +307,29 @@
             method: "GET",
             headers: { "Accept": "application/json" }
         });
+        //Заполнение форм
         if (response.ok === true) {
             const user = await response.json();
             document.getElementById('editId').value = user.id;
+            document.getElementById('deleteId').value = user.id;
+
             document.getElementById('editName').value = user.name;
+            document.getElementById('deleteName').value = user.name;
+
             document.getElementById('editSurname').value = user.surName;
+            document.getElementById('deleteSurname').value = user.surName;
+
             document.getElementById('editLogin').value = user.username;
+            document.getElementById('deleteLogin').value = user.username;
+
             document.getElementById('editAge').value = user.age;
+            document.getElementById('deleteAge').value = user.age;
+
             document.getElementById('editPassword').value = null;
+            document.getElementById('deletePassword').value = null;
         }
     }
+
     //Добавление нового пользователя ================================================================
     async function createUser() {
         const userRole = {
@@ -265,10 +340,16 @@
             id: 1,
             name: 'ROLE_ADMIN'
         }
+
         let newRoles = []
-        if ($("#newRole").val() === 'ROLE_ADMIN') {
+
+        if ($("#newRole").val().length === 2) {
+            newRoles.push(adminRole)
+            newRoles.push(userRole)
+        } else if ($("#newRole").val()[0] === 'ROLE_ADMIN') {
             newRoles.push(adminRole)
         } else newRoles.push(userRole);
+
         let modelUser = {
             name:$("#newName").val(),
             surName:$("#newSurname").val(),
@@ -297,7 +378,11 @@
         }
 
         let newRoles = []
-        if ($("#editRole").val() === 'ROLE_ADMIN') {
+
+        if ($("#editRole").val().length === 2) {
+            newRoles.push(adminRole)
+            newRoles.push(userRole)
+        } else if ($("#editRole").val()[0] === 'ROLE_ADMIN') {
             newRoles.push(adminRole)
         } else newRoles.push(userRole);
 
@@ -320,12 +405,12 @@
     }
 
     // Удаление пользователя =======================================================================
-    async function deleteUser(id) {
-        const response = await fetch("http://localhost:8080/api/admin/users/" + id, {
+    async function deleteUser() {
+        const response = await fetch("http://localhost:8080/api/admin/users/" + $("#deleteId").val(), {
             method: "DELETE",
             headers: { "Accept": "application/json" }
         });
-        document.getElementById(id).remove();
+        await getUsers();
     }
 
     //Заполнение таблицы пользователей ===========================================================================
@@ -343,7 +428,7 @@
         temp += '<td>' + user.age + '</td>';
         temp += '<td>' + userRole + '</td>';
         temp += '<td><button type="button" class="btn btn-info" data-toggle="modal" data-target="#editUserForm" onclick="getUser(' + user.id + ')">Edit</button></td>';
-        temp += '<td><button type="button" class="btn btn-danger" onclick="deleteUser(' + user.id + ')">Delete</button></td></tr>';
+        temp += '<td><button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteUserForm" onclick="getUser(' + user.id + ')">Delete</button></td></tr>';
         return temp;
     }
 

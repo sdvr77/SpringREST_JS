@@ -30,7 +30,9 @@ public class UserServiceImp implements UserService {
     @Override
     @Transactional
     public void save(User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        if (user.getPassword() != null) {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        }
         userDao.save(user);
     }
 
